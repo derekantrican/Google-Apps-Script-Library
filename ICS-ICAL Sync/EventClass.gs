@@ -6,5 +6,6 @@ var Event = function(){
   this.endTime = new Date();
   this.location = "";
   this.id = "";
+  this.reminderTimes = new Array();
   //----------------------------------------------
 }
