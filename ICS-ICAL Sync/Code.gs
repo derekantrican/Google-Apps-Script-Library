@@ -3,7 +3,7 @@ function main() {
   var sourceCalendarURL = ""; //The ics/ical url that you want to get events from
   var targetCalendarName = ""; //The name of the Google Calendar you want to add events to
   var descriptionAsTitles = true; //Whether to use the ics/ical descriptions as titles (true) or to use the normal titles as titles (false)
-  var addAlerts = false; //Whether to add the ics/ical alerts as notifications on the Google Calendar events
+  var addAlerts = true; //Whether to add the ics/ical alerts as notifications on the Google Calendar events
   var addEventsToCalendar = true; //If you turn this to "false", you can check the log (View > Logs) to make sure your events are being read correctly before turning this on
   //-------------------------------------------------------------------------------------------------------
   
@@ -37,6 +37,7 @@ function main() {
   //------------------------ Parse events --------------------------
   //https://en.wikipedia.org/wiki/ICalendar#Technical_specifications
   //https://tools.ietf.org/html/rfc5545
+  //https://www.kanzaki.com/docs/ical
   
   var parsingEvent = false;
   var parsingNotification = false;
@@ -56,7 +57,10 @@ function main() {
     else if (response[i] == "END:VALARM")
       parsingNotification = false;
     else if (parsingNotification){
-      //Not supported yet
+      if (addAlerts){
+        if (response[i].includes("TRIGGER"))
+          currentEvent.reminderTimes[currentEvent.reminderTimes.length++] = ParseNotificationTime(response[i].split("TRIGGER:")[1]);
+      }
     }
     else if (parsingEvent){
       if (response[i].includes("SUMMARY") && !descriptionAsTitles)
@@ -91,6 +95,9 @@ function main() {
     Logger.log("Start: " + events[i].startTime);
     Logger.log("End: " + events[i].endTime);
     
+    for (var j = 0; j < events[i].reminderTimes.length; j++)
+      Logger.log("Reminder: " + events[i].reminderTimes[j] + " seconds before");
+    
     Logger.log("");
   }
   //----------------------------------------------------------------
@@ -98,11 +105,53 @@ function main() {
   //------------------------ Add events to calendar ----------------
   if (addEventsToCalendar){
     for (var i = 0; i < events.length; i++){
-      if (!EventExists(targetCalendar, events[i]))    
-        targetCalendar.createEvent(events[i].title, events[i].startTime, events[i].endTime, {location : events[i].location, description : events[i].description + "\n\n" + events[i].id});
+      if (!EventExists(targetCalendar, events[i])){
+        var resultEvent = targetCalendar.createEvent(events[i].title, events[i].startTime, events[i].endTime, {location : events[i].location, description : events[i].description + "\n\n" + events[i].id});
+        
+        for (var j = 0; j < events[i].reminderTimes.length; j++)
+          resultEvent.addPopupReminder(events[i].reminderTimes[j] / 60);
+      }
     }
   }
   //----------------------------------------------------------------
+}
+
+function ParseNotificationTime(notificationString){
+  //https://www.kanzaki.com/docs/ical/duration-t.html
+  var reminderTime = 0;
+  
+  //We will assume all notifications are BEFORE the event
+  if (notificationString[0] == "+" || notificationString[0] == "-")
+    notificationString = notificationString.substr(1);
+    
+  notificationString = notificationString.substr(1); //Remove "P" character
+  
+  var secondMatch = RegExp("\\d+S", "g").exec(notificationString);
+  var minuteMatch = RegExp("\\d+M", "g").exec(notificationString);
+  var hourMatch = RegExp("\\d+H", "g").exec(notificationString);
+  var dayMatch = RegExp("\\d+D", "g").exec(notificationString);
+  var weekMatch = RegExp("\\d+W", "g").exec(notificationString);
+  
+  if (weekMatch != null){
+    reminderTime += parseInt(weekMatch[0].slice(0, -1)) & 7 * 24 * 60 * 60; //Remove the "W" off the end
+    
+    return reminderTime; //Return the notification time in seconds
+  }
+  else{
+    if (secondMatch != null)
+      reminderTime += parseInt(secondMatch[0].slice(0, -1)); //Remove the "S" off the end
+      
+    if (minuteMatch != null)
+      reminderTime += parseInt(minuteMatch[0].slice(0, -1)) * 60; //Remove the "M" off the end
+      
+    if (hourMatch != null)
+      reminderTime += parseInt(hourMatch[0].slice(0, -1)) * 60 * 60; //Remove the "H" off the end
+      
+    if (dayMatch != null)
+      reminderTime += parseInt(dayMatch[0].slice(0, -1)) * 24 * 60 * 60; //Remove the "D" off the end
+      
+    return reminderTime; //Return the notification time in seconds
+  }
 }
 
 function EventExists(calendar, event){
