@@ -1,8 +1,9 @@
 /* --------------- HOW TO INSTALL ---------------
 *
 * 1) Click in the menu "File" > "Make a copy..." and make a copy to your Google Drive
-* 2) Changes lines 10-18 to be the settings that you want to use
+* 2) Changes lines 11-19 to be the settings that you want to use
 * 3) Click in the menu "Run" > "Run function" > "Install" and authorize the program
+*    (For steps to follow in authorization, see this video: https://youtu.be/_5k10maGtek?t=1m22s )
 *
 */
 
@@ -35,7 +36,7 @@ var email = ""; //OPTIONAL: If "emailWhenAdded" is set to true, you will need to
 
 //---------------- DO NOT EDIT BELOW HERE UNLESS YOU REALLY KNOW WHAT YOU'RE DOING --------------------
 function Install(){
-  ScriptApp.newTrigger(main).timeBased().everyMinutes(howFrequent).create();
+  ScriptApp.newTrigger("main").timeBased().everyMinutes(howFrequent).create();
 }
 
 function main() {  
