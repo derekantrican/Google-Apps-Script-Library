@@ -1,12 +1,44 @@
-function main() {
-  //-------------------------------------- USER-DEFINED VARIABLES -----------------------------------------
-  var sourceCalendarURL = ""; //The ics/ical url that you want to get events from
-  var targetCalendarName = ""; //The name of the Google Calendar you want to add events to
-  var descriptionAsTitles = true; //Whether to use the ics/ical descriptions as titles (true) or to use the normal titles as titles (false)
-  var addAlerts = true; //Whether to add the ics/ical alerts as notifications on the Google Calendar events
-  var addEventsToCalendar = true; //If you turn this to "false", you can check the log (View > Logs) to make sure your events are being read correctly before turning this on
-  //-------------------------------------------------------------------------------------------------------
-  
+/* --------------- HOW TO INSTALL ---------------
+*
+* 1) Click in the menu "File" > "Make a copy..." and make a copy to your Google Drive
+* 2) Changes lines 10-18 to be the settings that you want to use
+* 3) Click in the menu "Run" > "Run function" > "Install" and authorize the program
+*
+*/
+
+// --------------- SETTINGS ---------------
+var sourceCalendarURL = ""; //The ics/ical url that you want to get events from
+var targetCalendarName = ""; //The name of the Google Calendar you want to add events to
+var howFrequent = 15; //What interval (minutes) to run this script on to check for new events
+var addEventsToCalendar = true; //If you turn this to "false", you can check the log (View > Logs) to make sure your events are being read correctly before turning this on
+var addAlerts = true; //Whether to add the ics/ical alerts as notifications on the Google Calendar events
+var descriptionAsTitles = false; //Whether to use the ics/ical descriptions as titles (true) or to use the normal titles as titles (false)
+
+var emailWhenAdded = false; //Will email you when an event is added to your calendar
+var email = ""; //OPTIONAL: If "emailWhenAdded" is set to true, you will need to provide your email
+// ----------------------------------------
+
+/* --------------- MISCELLANEOUS ----------
+*
+* This program was created by Derek Antrican
+*
+* The code for this program is kept updated here: https://github.com/derekantrican/Google-Apps-Script-Library/tree/master/ICS-ICAL%20Sync
+* 
+* If you would like to donate and help Derek keep making awesome programs,
+* you can do that here: https://bulkeditcalendarevents.wordpress.com/donate/
+* 
+* If you would like to see other programs Derek has made, you can check out
+* his website: derekantrican.com or his github: https://github.com/derekantrican
+* 
+*/
+
+
+//---------------- DO NOT EDIT BELOW HERE UNLESS YOU REALLY KNOW WHAT YOU'RE DOING --------------------
+function Install(){
+  ScriptApp.newTrigger(myFunction).timeBased().everyMinutes(howFrequent).create();
+}
+
+function main() {  
   //Get URL items
   var response = UrlFetchApp.fetch(sourceCalendarURL);
   response = response.getContentText().split("\r\n");
@@ -30,6 +62,12 @@ function main() {
   if (response[1].split("VERSION:")[1] != "2.0"){
     Logger.clear();
     Logger.log("[ERROR] Wrong ics/ical version. Currently only version 2.0 is supported");
+    return;
+  }
+  
+  if (emailWhenAdded && email == ""){
+    Logger.clear();
+    Logger.log("[ERROR] \"emailWhenAdded\" is set to true, but no email is defined");
     return;
   }
   //----------------------------------------------------------------
@@ -110,6 +148,9 @@ function main() {
         
         for (var j = 0; j < events[i].reminderTimes.length; j++)
           resultEvent.addPopupReminder(events[i].reminderTimes[j] / 60);
+          
+        if (emailWhenAdded)
+          GmailApp.sendEmail(email, "New Event Added", "New event added to calendar \"" + targetCalendarName + "\" at " + events[i].startTime);
       }
     }
   }
