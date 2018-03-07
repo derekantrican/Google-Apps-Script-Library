@@ -48,29 +48,17 @@ function main() {
   var targetCalendar = CalendarApp.getCalendarsByName(targetCalendarName)[0];
   
   //------------------------ Error checking ------------------------
-  if(response[0] == "That calendar does not exist."){
-    Logger.clear();
-    Logger.log("[ERROR] Incorrect ics/ical URL");
-    return;
-  }
+  if(response[0] == "That calendar does not exist.")
+    throw "[ERROR] Incorrect ics/ical URL";
   
-  if(targetCalendar == null){
-    Logger.clear();
-    Logger.log("[ERROR] Could not find calendar of name \"" + targetCalendarName + "\"");
-    return;
-  }
+  if(targetCalendar == null)
+    throw "[ERROR] Could not find calendar of name \"" + targetCalendarName + "\"";
   
-  if (response[1].split("VERSION:")[1] != "2.0"){
-    Logger.clear();
-    Logger.log("[ERROR] Wrong ics/ical version. Currently only version 2.0 is supported");
-    return;
-  }
+  if (response[1].split("VERSION:")[1] != "2.0")
+    throw "[ERROR] Wrong ics/ical version. Currently only version 2.0 is supported";
   
-  if (emailWhenAdded && email == ""){
-    Logger.clear();
-    Logger.log("[ERROR] \"emailWhenAdded\" is set to true, but no email is defined");
-    return;
-  }
+  if (emailWhenAdded && email == "")
+    throw "[ERROR] \"emailWhenAdded\" is set to true, but no email is defined";
   //----------------------------------------------------------------
   
   //------------------------ Parse events --------------------------
