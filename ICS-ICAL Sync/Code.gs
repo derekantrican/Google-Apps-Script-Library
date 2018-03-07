@@ -35,7 +35,7 @@ var email = ""; //OPTIONAL: If "emailWhenAdded" is set to true, you will need to
 
 //---------------- DO NOT EDIT BELOW HERE UNLESS YOU REALLY KNOW WHAT YOU'RE DOING --------------------
 function Install(){
-  ScriptApp.newTrigger(myFunction).timeBased().everyMinutes(howFrequent).create();
+  ScriptApp.newTrigger(main).timeBased().everyMinutes(howFrequent).create();
 }
 
 function main() {  
