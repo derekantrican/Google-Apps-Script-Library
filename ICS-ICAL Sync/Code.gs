@@ -99,10 +99,10 @@ function main() {
         currentEvent.description = response[i].split("DESCRIPTION:")[1];   
     
       if (response[i].includes("DTSTART"))
-        currentEvent.startTime = Moment.moment(response[i].split("DTSTART:")[1], "YYYYMMDDTHHmmssZ").toDate();
+        currentEvent.startTime = Moment.moment(GetUTCTime(response[i].split("DTSTART")[1]), "YYYYMMDDTHHmmssZ").toDate();
         
       if (response[i].includes("DTEND"))
-        currentEvent.endTime = Moment.moment(response[i].split("DTEND:")[1], "YYYYMMDDTHHmmssZ").toDate();
+        currentEvent.endTime = Moment.moment(GetUTCTime(response[i].split("DTEND")[1]), "YYYYMMDDTHHmmssZ").toDate();
         
       if (response[i].includes("LOCATION"))
         currentEvent.location = response[i].split("LOCATION:")[1];
@@ -188,4 +188,15 @@ function EventExists(calendar, event){
   var events = calendar.getEvents(event.startTime, event.endTime, {search : event.id});
   
   return events.length > 0;
+}
+
+function GetUTCTime(parameter){
+  parameter = parameter.substr(1); //Remove leading ; or : character
+  if (parameter.includes("TZID")){
+    var tzid = parameter.split("TZID=")[1].split(":")[0];
+    var time = parameter.split(":")[1];
+    return Moment.moment.tz(time,tzid).tz("Etc/UTC").format("YYYYMMDDTHHmmss") + "Z";    
+  }
+  else
+    return parameter;
 }
