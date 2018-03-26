@@ -1,7 +1,7 @@
 /* --------------- HOW TO INSTALL ---------------
 *
 * 1) Click in the menu "File" > "Make a copy..." and make a copy to your Google Drive
-* 2) Changes lines 11-19 to be the settings that you want to use
+* 2) Changes lines 11-20 to be the settings that you want to use
 * 3) Click in the menu "Run" > "Run function" > "Install" and authorize the program
 *    (For steps to follow in authorization, see this video: https://youtu.be/_5k10maGtek?t=1m22s )
 *
@@ -14,6 +14,7 @@ var howFrequent = 15; //What interval (minutes) to run this script on to check f
 var addEventsToCalendar = true; //If you turn this to "false", you can check the log (View > Logs) to make sure your events are being read correctly before turning this on
 var addAlerts = true; //Whether to add the ics/ical alerts as notifications on the Google Calendar events
 var descriptionAsTitles = false; //Whether to use the ics/ical descriptions as titles (true) or to use the normal titles as titles (false)
+var defaultDuration = 60; //Default duration (in minutes) in case the event is missing an end specification in the ICS/ICAL file
 
 var emailWhenAdded = false; //Will email you when an event is added to your calendar
 var email = ""; //OPTIONAL: If "emailWhenAdded" is set to true, you will need to provide your email
@@ -54,9 +55,6 @@ function main() {
   if(targetCalendar == null)
     throw "[ERROR] Could not find calendar of name \"" + targetCalendarName + "\"";
   
-  if (response[1].split("VERSION:")[1] != "2.0")
-    throw "[ERROR] Wrong ics/ical version. Currently only version 2.0 is supported";
-  
   if (emailWhenAdded && email == "")
     throw "[ERROR] \"emailWhenAdded\" is set to true, but no email is defined";
   //----------------------------------------------------------------
@@ -76,6 +74,9 @@ function main() {
       currentEvent = new Event();
     }
     else if (response[i] == "END:VEVENT"){
+      if (currentEvent.endTime == null)
+        currentEvent.endTime = new Date(currentEvent.startTime.getTime() + defaultDuration * 60 * 1000);
+      
       parsingEvent = false;
       events[events.length] = currentEvent;
     }
