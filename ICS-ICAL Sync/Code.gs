@@ -20,13 +20,14 @@ var sourceCalendars={
 
 // Currently global settings are applied to all sourceCalendars.  
 
-var howFrequent = 1; //What interval (minutes) to run this script on to check for new events
+var howFrequent = 20; //What interval (minutes) to run this script on to check for new events
 var addEventsToCalendar = true; //If you turn this to "false", you can check the log (View > Logs) to make sure your events are being read correctly before turning this on
+var modifyExistingEvents = true; // If you turn this to "false", any event in the feed that was modified after being added to the calendar will not update
 var removeEventsFromCalendar = true; //If you turn this to "true", any event in the calendar not found in the feed will be removed.  
 var createMissingCalendar=true;  // If the calendar name is not found we create it instead of throwing an error, only if the sourceUrl works.
 var addAlerts = true; //Whether to add the ics/ical alerts as notifications on the Google Calendar events
 var descriptionAsTitles = false; //Whether to use the ics/ical descriptions as titles (true) or to use the normal titles as titles (false)
-var defaultDuration = 60; //Default duration (in minutes) in case the event is missing an end specification in the ICS/ICAL file
+var defaultDuration = 30; //Default duration (in minutes) in case the event is missing an end specification in the ICS/ICAL file
 
 var emailWhenAdded = false; //Will email you when an event is added to your calendar
 var email = ""; //OPTIONAL: If "emailWhenAdded" is set to true, you will need to provide your email
@@ -200,20 +201,46 @@ function syncCalendar(targetCalendarName, sourceCalendarURL) {
   //----------------------------------------------------------------
   
   
-  //----------------------- Remove events from calendar ------------
-  if(removeEventsFromCalendar){
-    Logger.log("Checking "+calendarEvents.length+" Events For Removal");
-
-    for(var i=0; i < calendarEvents.length; i++){
-      if( feedEventIds.indexOf( calendarEvents[i].getTag("FID") ) == -1  ){
+  
+  //-------------- Remove Or modify events from calendar -----------
+  for(var i=0; i < calendarEvents.length; i++){
+    Logger.log("Checking "+calendarEvents.length+" Events For Removal or Modification");
+    var feedIndex = feedEventIds.indexOf( calendarEvents[i].getTag("FID") );
+    if(removeEventsFromCalendar){
+      if( feedIndex  == -1  ){
         Logger.log("    Deleting "+calendarEvents[i].getTitle());
         calendarEvents[i].deleteEvent();
       }
     }
+    
+    if(modifyExistingEvents){
+      if( feedIndex != -1  ){
+        var e = calendarEvents[i];
+
+        var fes = events.filter(sameEvent, calendarEvents[i].getTag("FID"));
+        if( fes.length > 0){
+          
+          var fe = fes[0];
+          
+          if(e.getStartTime() != fe.startTime || e.getEndTime() != fe.endTime)
+            e.setTime(fe.startTime, fe.endTime)
+          if(e.getTitle() != fe.title)
+            e.setTitle(fe.title);
+          if(e.getLocation() != fe.location)
+            e.setLocation(fe.location)
+          if(e.getDescription() != fe.description)
+            e.setDescription(fe.description)
+          
+                    
+        }
+      }
+    } 
   }
   //----------------------------------------------------------------
   
 }
+
+
 
 function ParseNotificationTime(notificationString){
   //https://www.kanzaki.com/docs/ical/duration-t.html
@@ -253,6 +280,10 @@ function ParseNotificationTime(notificationString){
   }
 }
 
+
+function sameEvent(x){
+  return x.id == this;
+}
 //function EventExists(calendar, event){
 //  
 //  var events = calendar.getEvents(event.startTime, event.endTime, {search : event.id});
