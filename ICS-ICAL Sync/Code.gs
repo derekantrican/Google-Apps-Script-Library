@@ -4,20 +4,33 @@
 * 2) Changes lines 11-20 to be the settings that you want to use
 * 3) Click in the menu "Run" > "Run function" > "Install" and authorize the program
 *    (For steps to follow in authorization, see this video: https://youtu.be/_5k10maGtek?t=1m22s )
-*
+* 4) To stop Script from running click in the menu "Edit" > "Current Project's Triggers".  Delete the running trigger.
 */
 
 // --------------- SETTINGS ---------------
-var sourceCalendarURL = ""; //The ics/ical url that you want to get events from
-var targetCalendarName = ""; //The name of the Google Calendar you want to add events to
-var howFrequent = 15; //What interval (minutes) to run this script on to check for new events
+
+// var sourceCalendars = { targetCalendarName:"sourceCalendarURL"}
+//     "targetCalendarName" is The name of the Google Calendar you want to add events to
+//     "sourceCalendarURL" is The ics/ical url that you want to get events from
+
+var sourceCalendars={
+  example:""
+};
+
+
+// Currently global settings are applied to all sourceCalendars.  
+
+var howFrequent = 1; //What interval (minutes) to run this script on to check for new events
 var addEventsToCalendar = true; //If you turn this to "false", you can check the log (View > Logs) to make sure your events are being read correctly before turning this on
+var removeEventsFromCalendar = true; //If you turn this to "true", any event in the calendar not found in the feed will be removed.  
+var createMissingCalendar=true;  // If the calendar name is not found we create it instead of throwing an error, only if the sourceUrl works.
 var addAlerts = true; //Whether to add the ics/ical alerts as notifications on the Google Calendar events
 var descriptionAsTitles = false; //Whether to use the ics/ical descriptions as titles (true) or to use the normal titles as titles (false)
 var defaultDuration = 60; //Default duration (in minutes) in case the event is missing an end specification in the ICS/ICAL file
 
 var emailWhenAdded = false; //Will email you when an event is added to your calendar
 var email = ""; //OPTIONAL: If "emailWhenAdded" is set to true, you will need to provide your email
+
 // ----------------------------------------
 
 /* --------------- MISCELLANEOUS ----------
@@ -32,7 +45,12 @@ var email = ""; //OPTIONAL: If "emailWhenAdded" is set to true, you will need to
 * If you would like to see other programs Derek has made, you can check out
 * his website: derekantrican.com or his github: https://github.com/derekantrican
 * 
+*
+* Program was modified by Andrew Brothers
+* Github: https://github.com/agentd00nut/
+* Twitter: @abrothers656
 */
+
 
 
 //---------------- DO NOT EDIT BELOW HERE UNLESS YOU REALLY KNOW WHAT YOU'RE DOING --------------------
@@ -40,7 +58,15 @@ function Install(){
   ScriptApp.newTrigger("main").timeBased().everyMinutes(howFrequent).create();
 }
 
-function main() {  
+function main(){
+  
+  for( var calendar in sourceCalendars){
+    Logger.log("Syncing "+ calendar);
+    syncCalendar(calendar, sourceCalendars[calendar]);
+  }
+}
+
+function syncCalendar(targetCalendarName, sourceCalendarURL) {  
   //Get URL items
   var response = UrlFetchApp.fetch(sourceCalendarURL);
   response = response.getContentText().split("\r\n");
@@ -48,12 +74,21 @@ function main() {
   //Get target calendar information
   var targetCalendar = CalendarApp.getCalendarsByName(targetCalendarName)[0];
   
+  
+  
+  
   //------------------------ Error checking ------------------------
   if(response[0] == "That calendar does not exist.")
     throw "[ERROR] Incorrect ics/ical URL";
   
-  if(targetCalendar == null)
-    throw "[ERROR] Could not find calendar of name \"" + targetCalendarName + "\"";
+  if(targetCalendar == null){
+    if(createMissingCalendar){
+      Logger.log("Creating Calendar: "+targetCalendarName);
+      targetCalendar = CalendarApp.createCalendar(targetCalendarName);
+    }else{
+      throw "[ERROR] Could not find calendar of name \"" + targetCalendarName + "\"";
+    }
+  }
   
   if (emailWhenAdded && email == "")
     throw "[ERROR] \"emailWhenAdded\" is set to true, but no email is defined";
@@ -68,6 +103,8 @@ function main() {
   var parsingNotification = false;
   var currentEvent;
   var events = [];
+  var feedEventIds=[];
+  
   for (var i = 0; i < response.length; i++){  
     if (response[i] == "BEGIN:VEVENT"){
       parsingEvent = true;
@@ -108,33 +145,49 @@ function main() {
       if (response[i].includes("LOCATION"))
         currentEvent.location = response[i].split("LOCATION:")[1];
         
-      if (response[i].includes("UID"))
+      if (response[i].includes("UID")){
         currentEvent.id = response[i].split("UID:")[1];
+        feedEventIds.push(currentEvent.id);
+      }
     }
   }
   //----------------------------------------------------------------
   
   //------------------------ Check results -------------------------
   Logger.log("# of events: " + events.length);
-  for (var i = 0; i < events.length; i++){
-    Logger.log("Title: " + events[i].title);
-    Logger.log("Id: " + events[i].id);
-    Logger.log("Description: " + events[i].description);
-    Logger.log("Start: " + events[i].startTime);
-    Logger.log("End: " + events[i].endTime);
-    
-    for (var j = 0; j < events[i].reminderTimes.length; j++)
-      Logger.log("Reminder: " + events[i].reminderTimes[j] + " seconds before");
-    
-    Logger.log("");
-  }
+//  for (var i = 0; i < events.length; i++){
+//    Logger.log("Title: " + events[i].title);
+//    Logger.log("Id: " + events[i].id);
+//    Logger.log("Description: " + events[i].description);
+//    Logger.log("Start: " + events[i].startTime);
+//    Logger.log("End: " + events[i].endTime);
+//    
+//    for (var j = 0; j < events[i].reminderTimes.length; j++)
+//      Logger.log("Reminder: " + events[i].reminderTimes[j] + " seconds before");
+//    
+//    Logger.log("");
+//  }
   //----------------------------------------------------------------
   
+  if(addEventsToCalendar || removeEventsFromCalendar){
+    var calendarEvents = targetCalendar.getEvents(new Date(2000,01,01), new Date( 2100,01,01 ))
+    var calendarFids = []
+    for(var i=0; i<calendarEvents.length; i++){
+      calendarFids[i] = calendarEvents[i].getTag("FID");
+    }
+  }
+
   //------------------------ Add events to calendar ----------------
   if (addEventsToCalendar){
-    for (var i = 0; i < events.length; i++){
-      if (!EventExists(targetCalendar, events[i])){
-        var resultEvent = targetCalendar.createEvent(events[i].title, events[i].startTime, events[i].endTime, {location : events[i].location, description : events[i].description + "\n\n" + events[i].id});
+    Logger.log("Checking "+events.length+" Events for creation")
+    for (var i = 0; i < events.length; i++){    
+//      Logger.log("Checking: "+ events[i].id);      
+      
+      if (calendarFids.indexOf( events[i].id ) == -1 ){
+        var resultEvent = targetCalendar.createEvent(events[i].title, events[i].startTime, events[i].endTime, {location : events[i].location, description : events[i].description });
+        
+        resultEvent.setTag("FID", events[i].id)
+        Logger.log("   Created: "+events[i].id);
         
         for (var j = 0; j < events[i].reminderTimes.length; j++)
           resultEvent.addPopupReminder(events[i].reminderTimes[j] / 60);
@@ -145,6 +198,21 @@ function main() {
     }
   }
   //----------------------------------------------------------------
+  
+  
+  //----------------------- Remove events from calendar ------------
+  if(removeEventsFromCalendar){
+    Logger.log("Checking "+calendarEvents.length+" Events For Removal");
+
+    for(var i=0; i < calendarEvents.length; i++){
+      if( feedEventIds.indexOf( calendarEvents[i].getTag("FID") ) == -1  ){
+        Logger.log("    Deleting "+calendarEvents[i].getTitle());
+        calendarEvents[i].deleteEvent();
+      }
+    }
+  }
+  //----------------------------------------------------------------
+  
 }
 
 function ParseNotificationTime(notificationString){
@@ -185,11 +253,11 @@ function ParseNotificationTime(notificationString){
   }
 }
 
-function EventExists(calendar, event){
-  var events = calendar.getEvents(event.startTime, event.endTime, {search : event.id});
-  
-  return events.length > 0;
-}
+//function EventExists(calendar, event){
+//  
+//  var events = calendar.getEvents(event.startTime, event.endTime, {search : event.id});
+//  return events.length > 0;
+//}
 
 function GetUTCTime(parameter){
   parameter = parameter.substr(1); //Remove leading ; or : character
