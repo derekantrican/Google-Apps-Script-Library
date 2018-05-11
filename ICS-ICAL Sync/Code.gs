@@ -9,22 +9,16 @@
 
 // --------------- SETTINGS ---------------
 
-// var sourceCalendars = { targetCalendarName:"sourceCalendarURL"}
-//     "targetCalendarName" is The name of the Google Calendar you want to add events to
-//     "sourceCalendarURL" is The ics/ical url that you want to get events from
-
-var sourceCalendars={
-  example:""
-};
+var targetCalendarName = "" // The name of the Google Calendar you want to add events to
+var sourceCalendarURL = "" // The ics/ical url that you want to get events from
 
 
 // Currently global settings are applied to all sourceCalendars.  
 
-var howFrequent = 20; //What interval (minutes) to run this script on to check for new events
+var howFrequent = 60; //What interval (minutes) to run this script on to check for new events
 var addEventsToCalendar = true; //If you turn this to "false", you can check the log (View > Logs) to make sure your events are being read correctly before turning this on
 var modifyExistingEvents = true; // If you turn this to "false", any event in the feed that was modified after being added to the calendar will not update
 var removeEventsFromCalendar = true; //If you turn this to "true", any event in the calendar not found in the feed will be removed.  
-var createMissingCalendar=true;  // If the calendar name is not found we create it instead of throwing an error, only if the sourceUrl works.
 var addAlerts = true; //Whether to add the ics/ical alerts as notifications on the Google Calendar events
 var descriptionAsTitles = false; //Whether to use the ics/ical descriptions as titles (true) or to use the normal titles as titles (false)
 var defaultDuration = 30; //Default duration (in minutes) in case the event is missing an end specification in the ICS/ICAL file
@@ -61,13 +55,6 @@ function Install(){
 
 function main(){
   
-  for( var calendar in sourceCalendars){
-    Logger.log("Syncing "+ calendar);
-    syncCalendar(calendar, sourceCalendars[calendar]);
-  }
-}
-
-function syncCalendar(targetCalendarName, sourceCalendarURL) {  
   //Get URL items
   var response = UrlFetchApp.fetch(sourceCalendarURL);
   response = response.getContentText().split("\r\n");
@@ -83,12 +70,8 @@ function syncCalendar(targetCalendarName, sourceCalendarURL) {
     throw "[ERROR] Incorrect ics/ical URL";
   
   if(targetCalendar == null){
-    if(createMissingCalendar){
       Logger.log("Creating Calendar: "+targetCalendarName);
       targetCalendar = CalendarApp.createCalendar(targetCalendarName);
-    }else{
-      throw "[ERROR] Could not find calendar of name \"" + targetCalendarName + "\"";
-    }
   }
   
   if (emailWhenAdded && email == "")
@@ -156,18 +139,18 @@ function syncCalendar(targetCalendarName, sourceCalendarURL) {
   
   //------------------------ Check results -------------------------
   Logger.log("# of events: " + events.length);
-//  for (var i = 0; i < events.length; i++){
-//    Logger.log("Title: " + events[i].title);
-//    Logger.log("Id: " + events[i].id);
-//    Logger.log("Description: " + events[i].description);
-//    Logger.log("Start: " + events[i].startTime);
-//    Logger.log("End: " + events[i].endTime);
-//    
-//    for (var j = 0; j < events[i].reminderTimes.length; j++)
-//      Logger.log("Reminder: " + events[i].reminderTimes[j] + " seconds before");
-//    
-//    Logger.log("");
-//  }
+  for (var i = 0; i < events.length; i++){
+    Logger.log("Title: " + events[i].title);
+    Logger.log("Id: " + events[i].id);
+    Logger.log("Description: " + events[i].description);
+    Logger.log("Start: " + events[i].startTime);
+    Logger.log("End: " + events[i].endTime);
+    
+    for (var j = 0; j < events[i].reminderTimes.length; j++)
+      Logger.log("Reminder: " + events[i].reminderTimes[j] + " seconds before");
+    
+    Logger.log("");
+  }
   //----------------------------------------------------------------
   
   if(addEventsToCalendar || removeEventsFromCalendar){
