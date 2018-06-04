@@ -25,7 +25,7 @@ Google Calendar
 - *Set Invite Status.gs:* This script will set your status on events you are invited to (`YES`/`NO`/`MAYBE`/`INVITED`)
 - *Split Multi-Day Event.gs:* The purpose of this script is to split events that last more than 24 hrs into sections no more than 24 hrs (the reason being that Google Calendar shows events >24hrs in the "all-day section" at the top of the calendar - making them harder to spot). This makes it easier to see when a large event is planned. **This script still has some development work to be done and has issues**
 
-*ICS-ICAL Sync:* [If you want to use this, please copy the script from here](https://script.google.com/d/1QeZFLSM1EkuFvYcryECI_xH-IZVe1-IxGRq_n6OoXp1CmVtSeTeigEx4/edit?usp=sharing) This is a standalone script (that consists of multiple files). The purpose is to sync ics/ical calendars to Google Calendar. Google Calendar *can* already do this, but updates only happen once every 12 or even 24 hrs. This script can be run much more frequently.
+*ICS-ICAL Sync:* https://github.com/derekantrican/GAS-ICS-Sync
 
 Tasks- Forms- etc
 
