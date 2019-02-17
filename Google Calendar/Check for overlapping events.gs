@@ -1,6 +1,6 @@
 //---------ONLY EDIT BELOW HERE UNLESS YOU REALLY KNOW WHAT YOU'RE DOING---------
-var calendars = "derekantrican@gmail.com,Work";               //Calendar names. Comma-separated (eg "Calendar1,Calendar2,This is also a calendar")
-var filterKeywords = "";                                //Filter keywords blacklist (ie an event won't be "overlapping" if it contains one of these keywords). Comma-separated. Case-insensitive
+var calendars = "";               //Calendar names. Comma-separated (eg "Calendar1,Calendar2,This is also a calendar")
+var filterKeywords = "";          //Filter keywords blacklist (ie an event won't be "overlapping" if it contains one of these keywords). Comma-separated. Case-insensitive
 //---------ONLY EDIT ABOVE HERE UNLESS YOU REALLY KNOW WHAT YOU'RE DOING---------
 
 function myFunction() {
