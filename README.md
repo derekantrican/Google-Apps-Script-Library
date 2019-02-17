@@ -20,7 +20,7 @@ External APIs
 Google Calendar
 
 - *Change Event Color.gs:* This script uses the **Official** Google Calendar API to change the color of events in Google Calendar
-- *Check for overlapping events.gs:* This script will check multiple Google Calendars and check for conflicting (overlapping) events and alert the user to any such cases. [This script still has some development work to be done and has issues](https://github.com/derekantrican/Google-Apps-Script-Library/issues/2)
+- *Check for overlapping events.gs:* This script will check multiple Google Calendars and check for conflicting (overlapping) events and alert the user to any such cases
 - *Convert Event to All-Day.gs:* This script will simply convert any event into an all-day event
 - *Delete Event From Multiple Calendars.gs:* The title is pretty self-explanatory here
 - *Move events to calendar.gs:* Can move (or just copy) events from one calendar to another
