@@ -1,6 +1,7 @@
 //---------ONLY EDIT BELOW HERE UNLESS YOU REALLY KNOW WHAT YOU'RE DOING---------
 var calendars = "";               //Calendar names. Comma-separated (eg "Calendar1,Calendar2,This is also a calendar")
 var filterKeywords = "";          //Filter keywords blacklist (ie an event won't be "overlapping" if it contains one of these keywords). Comma-separated. Case-insensitive
+var email = "";                   //Email to send results of overlapping events to
 //---------ONLY EDIT ABOVE HERE UNLESS YOU REALLY KNOW WHAT YOU'RE DOING---------
 
 function myFunction() {
@@ -45,7 +46,7 @@ function processArray(array){
   for (var i = 0; i < results.length; i++)
     body += "\n" + results[i];
   
-  MailApp.sendEmail("derekantrican@gmail.com", "Conflicting Events", body);
+  MailApp.sendEmail(email, "Conflicting Events", body);
 }
 
 function checkAgainstEvents(myEventDetails, fullArray){
