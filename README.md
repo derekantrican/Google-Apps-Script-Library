@@ -32,3 +32,16 @@ Google Calendar
 Tasks- Forms- etc
 
 - *Any.Do Port.gs:* **This script was never fully working and should only be used for reference on how to create Google Forms and interact with Google Tasks** This was an attempt to recreate the [Moment](https://support.any.do/hc/en-us/articles/202781361-What-is-the-Any-do-Moment-) function of the task manager [Any.Do](https://www.any.do/)
+
+----------
+### Interesting libraries/articles
+
+Here are a variety of articles, libraries, tools, etc I have found related to Google Apps Script:
+
+- Continuous integration (building/testing/publishing/etc) with Travis CI: https://github.com/faresd/google-apps-script_travis-ci
+- A library for updating a manifest file (`appsscript.json`) programatically: https://github.com/tanaikech/ManifestsApp
+- An extension for adding git commands (push/pull, etc) to the GAS IDE: https://chrome.google.com/webstore/detail/google-apps-script-github/lfjcgcmkmjjlieihflfhjopckgpelofo
+- A dark-theme for the GAS IDE: https://chrome.google.com/webstore/detail/appsscript-color/ciggahcpieccaejjdpkllokejakhkome
+- Using VS Code on your computer to develop GAS:
+  - https://www.labnol.org/internet/google-apps-script-developers/32305/
+  - https://yagisanatode.com/2019/04/01/working-with-google-apps-script-in-visual-studio-code-using-clasp/
