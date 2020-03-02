@@ -11,12 +11,20 @@ function getBoardIDsForUser(username){
   return trelloGET("/members/" + username).idBoards;
 }
 
+function getOpenBoards(username){
+  return trelloGET("/members/" + username + "/boards", "&filter=open");
+}
+
 function getBoardCards(boardID){
   return trelloGET("/boards/" + boardID + "/cards/");
 }
 
 function getListCards(listID){
   return trelloGET("/list/" + listID + "/cards/");
+}
+
+function getCard(cardID){
+  return trelloGET("/cards/" + cardID);
 }
 
 function addLabelToCard(cardID, labelID){
@@ -43,6 +51,18 @@ function addItemToChecklist(checklistID, nameOfCheckItem){
   return trelloPOST("/checklists/" + checklistID + "/checkItems", {"name" : nameOfCheckItem});
 }
 
+function addAttachmentToCard(cardID, urlToAttach){
+  return trelloPOST("/cards/" + cardID + "/attachments", {"url" : urlToAttach});
+}
+
+function removeItemFromChecklist(checklistID, checklistItemID){
+  trelloDELETE("/checklists/" + checklistID + "/checkItems/" + checklistItemID);
+}
+
+function getAttachmentsOnCard(cardID){
+  return trelloGET("/cards/" + cardID + "/attachments/");
+}
+
 function getChecklistsOnCard(cardID){
   return trelloGET("/cards/" + cardID + "/checklists/");
 }
@@ -55,8 +75,16 @@ function archiveCard(cardID){
   return trelloPUT("/cards/" + cardID, {"closed" : true});
 }
 
-function trelloGET(relativeUrl){
-  var completeUrl = TRELLO_BASE_URL + relativeUrl + "?key=" + TRELLO_API_KEY + "&token=" + TRELLO_MEMBER_TOKEN;
+function unArchiveCard(cardID){
+  return trelloPUT("/cards/" + cardID, {"closed" : false});
+}
+
+function moveCardToTop(cardID){
+  return trelloPUT("/cards/" + cardID, {"pos" : "top"});
+}
+
+function trelloGET(relativeUrl, additionalParams = ""){
+  var completeUrl = TRELLO_BASE_URL + relativeUrl + "?key=" + TRELLO_API_KEY + "&token=" + TRELLO_MEMBER_TOKEN + additionalParams;
   
   var jsonData = UrlFetchApp.fetch(completeUrl);
   return JSON.parse(jsonData.getContentText());
