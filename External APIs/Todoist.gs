@@ -19,6 +19,10 @@ function getTasks(projectId = null, sectionId = null, label_id = null, filter = 
   return todoistGET("/tasks", Object.keys(params).filter(k => params[k] != null).map(k => `${k}=${encodeURIComponent(params[k])}`).join('&'));
 }
 
+function getTask(taskId) {
+  return todoistGET(`/tasks/${taskId}`);
+}
+
 function getProjects() {
   return todoistGET("/projects");
 }
@@ -26,6 +30,33 @@ function getProjects() {
 function getInboxTasks() {
   var inboxProjectId = getProjects().find(p => p.inbox_project).id;
   return getTasks(inboxProjectId);
+}
+
+function getLabels() {
+  return todoistGET("/labels");
+}
+
+function updateTask(taskId, data) {
+  todoistPOST(`/tasks/${taskId}`, data);
+}
+
+function createTask(data) {
+  todoistPOST("/tasks", data);
+}
+
+function completeTask(taskId) {
+  todoistPOST(`/tasks/${taskId}/close`);
+}
+
+function commentOnTask(taskId, comment) {
+  return todoistPOST(`/comments`, {
+    'task_id' : taskId,
+    'content' : comment,
+  });
+}
+
+function getCommentsOnTask(taskId) {
+  return todoistGET('/comments', `task_id=${taskId}`);
 }
 
 function todoistGET(endpoint, additionalParams = ""){
@@ -39,5 +70,25 @@ function todoistGET(endpoint, additionalParams = ""){
   };
 
   var jsonData = UrlFetchApp.fetch(completeUrl, options);
-  return JSON.parse(jsonData.getContentText());
+  if (jsonData.getResponseCode() / 100 == 2 && jsonData.getContentText()) {
+    return JSON.parse(jsonData.getContentText());
+  }
+}
+
+function todoistPOST(endpoint, payload){
+  var completeUrl = TODOIST_BASE_URL + endpoint;
+  var options = {
+    "method" : "post",
+    "muteHttpExceptions" : true,
+    "contentType": "application/json",
+    "headers" : {
+      "Authorization" : `Bearer ${TODOIST_API_KEY}`,
+    },
+    "payload" : JSON.stringify(payload)
+  };
+
+  var jsonData = UrlFetchApp.fetch(completeUrl, options);
+  if (jsonData.getContentText()) {
+    return JSON.parse(jsonData.getContentText());
+  }
 }
